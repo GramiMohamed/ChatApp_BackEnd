@@ -2,7 +2,6 @@ const express = require('express');
 const User = require('../models/User');
 const router = express.Router();
 
-// Récupérer tous les utilisateurs
 router.get('/', async (req, res) => {
   try {
     const users = await User.find({});
@@ -12,7 +11,15 @@ router.get('/', async (req, res) => {
   }
 });
 
-// Récupérer un utilisateur par son ID
+router.get('/connected', async (req, res) => {
+  try {
+    const users = await User.find({ isConnected: true });
+    res.json(users);
+  } catch (err) {
+    res.status(500).json({ message: 'Error retrieving connected users', error: err });
+  }
+});
+
 router.get('/:id', async (req, res) => {
   try {
     const user = await User.findById(req.params.id);

@@ -1,6 +1,5 @@
 const express = require('express');
 const User = require('../models/User');
-const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 
 const router = express.Router();
@@ -21,7 +20,7 @@ router.post('/register', async (req, res) => {
         }
 
         // Hashage du mot de passe avant de le stocker
-        const hashedPassword = await bcrypt.hash(password, 10);  // Le "10" est le nombre de tours pour le hash
+        const hashedPassword = await bcrypt.hash(password, 10);
 
         const newUser = new User({
             username,
@@ -33,12 +32,12 @@ router.post('/register', async (req, res) => {
 
         res.status(201).json({ message: 'User registered successfully' });
     } catch (error) {
-        console.error('Registration error:', error);
+        console.error('❌ Registration error:', error);
         res.status(500).json({ error: 'Error registering user' });
     }
 });
 
-// Connexion d'un utilisateur
+// Connexion d'un utilisateur (sans token)
 router.post('/login', async (req, res) => {
     const { username, password } = req.body;
 
@@ -58,11 +57,35 @@ router.post('/login', async (req, res) => {
             return res.status(400).json({ error: 'Invalid credentials' });
         }
 
-        // Connexion réussie
-        res.json({ user: { id: user._id, username: user.username } });
+        // Connexion réussie (sans token)
+        res.json({ user: { id: user._id, username: user.username, isConnected: true } });
     } catch (error) {
-        console.error('Login error:', error);
+        console.error('❌ Login error:', error);
         res.status(500).json({ error: 'Error logging in' });
+    }
+});
+
+router.post('/logout', async (req, res) => {
+    const { userId } = req.body;
+
+    if (!userId) {
+        return res.status(400).json({ error: 'User ID is required' });
+    }
+
+    try {
+        const user = await User.findById(userId);
+        if (user) {
+            user.isConnected = false;
+            user.socketId = null;
+            await user.save();
+
+            console.log(`🔴 User ${user.username} logged out`);
+        }
+
+        res.json({ message: 'User logged out successfully' });
+    } catch (error) {
+        console.error('❌ Logout error:', error);
+        res.status(500).json({ error: 'Error logging out' });
     }
 });
 

@@ -25,7 +25,7 @@ router.get('/:userId', async (req, res) => {
     }
 });
 
-// Envoyer un message
+// Envoyer un message (enregistrement en base)
 router.post('/', async (req, res) => {
     const { userId, text, receiverId } = req.body;
 
